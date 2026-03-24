@@ -12,3 +12,9 @@ dist
 # misc
 .DS_Store
 *.pem
+
+# test coverage
+coverage
+
+# Claude Code
+.claude
