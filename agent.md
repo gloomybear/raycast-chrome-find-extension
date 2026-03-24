@@ -43,6 +43,12 @@ After completing any task that modifies files:
 
 ---
 
+## After Code Changes
+
+**Always run `npm run dev` after making code changes** so the user has the latest version running in Raycast for testing. Run it in the background so it doesn't block further work.
+
+---
+
 ## Dependency Updates
 
 When updating npm dependencies:
