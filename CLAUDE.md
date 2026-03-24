@@ -8,7 +8,7 @@ Raycast extension providing unified search across Chrome tabs, bookmarks, and hi
 
 ## Documentation
 
-- **PRD**: `docs/PRD-Find-in-Chrome.md` - Problem statement, user stories, acceptance criteria
+- **PRD**: `README.md` - Problem statement, user stories, acceptance criteria
 - **Technical Architecture**: `docs/Tech Design.md` - Stack, data flow, design decisions
 
 **Workflow**:

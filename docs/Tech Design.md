@@ -3,7 +3,7 @@
 ---
 
 ## About this doc
-This document explains the technical architecture based on the overall solution concept and requirements explained in: PRD-Find-in-Chrome.md
+This document explains the technical architecture based on the overall solution concept and requirements explained in: README.md
 
 
 ## 1. Technical Architecture
