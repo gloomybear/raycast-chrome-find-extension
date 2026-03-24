@@ -202,6 +202,7 @@ Build a **single Raycast extension** that provides a unified, real-time searchab
 | **Persistence** | Extension remains registered in Raycast after initial setup - survives restarts |
 | **Platform** | macOS 12 (Monterey) and later |
 | **Test coverage** | Minimum 90% unit test coverage for all utility code |
+| **Security** | Zero npm dependencies with high-severity vulnerabilities (`npm audit` must report no high/critical issues) |
 
 ### 5.2 Raycast Store Publication Requirements
 
