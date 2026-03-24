@@ -73,8 +73,57 @@ Extension Launch
 | Use `sqlite3` CLI instead of `better-sqlite3` npm package | Avoids native compilation (node-gyp), which fails on many setups due to Python/Xcode version mismatches. `sqlite3` is pre-installed on every Mac. |
 | Copy History DB to temp file before querying | Chrome holds a write lock on the History database while running. Copying avoids `SQLITE_BUSY` errors. |
 | Google Favicon Service over Chrome's local favicon DB | Chrome's `Favicons` DB uses a complex schema. Google's service is simpler, universally available, and OS-cached. |
-| Raycast native filtering (`filtering: true`) | Faster than custom filtering - Raycast handles fuzzy matching in native code, not JavaScript. |
+| Custom filtering with `filtering={false}` | Required for word-order-independent matching and content search - features not supported by Raycast's native filtering. |
 | Read `Local State` for profile detection | More reliable than AppleScript - works even if Chrome has no open windows. |
+
+### 1.7 Search Strategy
+
+The extension uses custom filtering to support word-order-independent search:
+
+1. **Query tokenization**: Split search query into lowercase words
+2. **Token matching**: Check if ALL tokens appear in target text (title, URL, domain, or content)
+3. **Order independence**: "request github" matches "GitHub Pull Request" because both tokens exist
+
+```typescript
+// Example: "request github" → ["request", "github"]
+// Matches: "GitHub Pull Request #123" (contains both "github" and "request")
+```
+
+This approach enables more flexible searching while maintaining result relevance.
+
+### 1.8 Content Search
+
+For open tabs, the extension fetches page content via JavaScript execution through AppleScript:
+
+```
+Tab Metadata Loaded (Phase 1, ~350ms)
+         │
+         ▼
+    Display Results (immediate)
+         │
+         ▼
+Content Fetch (Phase 2, background)
+         │
+    AppleScript → Chrome → execute JavaScript
+         │
+         ▼
+    document.body.innerText (truncated to 10KB)
+         │
+         ▼
+    Merge content into results
+         │
+         ▼
+    Content search now available
+```
+
+**Limitations:**
+- **Open tabs**: Full content search via JavaScript execution ✅
+- **Bookmarks**: Title/URL only (no cached content access) ⚠️
+- **History**: Title/URL only (cache format too complex) ⚠️
+
+When content matches a search query, the result displays:
+- A "Content Match" tag alongside the source tag
+- A content snippet showing the matching text with context
 
 ---
 

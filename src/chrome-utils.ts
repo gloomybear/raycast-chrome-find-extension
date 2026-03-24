@@ -15,6 +15,13 @@ export interface SearchResult {
   tabIndex?: number;
   visitCount?: number;
   lastVisitTime?: number;
+  content?: string;
+}
+
+export interface TabContent {
+  windowIndex: number;
+  tabIndex: number;
+  content: string;
 }
 
 export interface LocalState {
@@ -345,4 +352,67 @@ export function extractDomain(url: string): string {
   } catch {
     return url;
   }
+}
+
+// ─── Tab Content Parsing ─────────────────────────────────────
+/**
+ * Parse the output from AppleScript content fetching.
+ * Format: windowIndex|||tabIndex|||content
+ */
+export function parseTabContentOutput(output: string): TabContent[] {
+  if (!output || output.trim() === "") return [];
+
+  const contents: TabContent[] = [];
+  const lines = output.split("\n").filter((line) => line.trim() !== "");
+
+  for (const line of lines) {
+    const parts = line.split("|||");
+    if (parts.length >= 3) {
+      const windowIndex = parseInt(parts[0]);
+      const tabIndex = parseInt(parts[1]);
+      const content = parts.slice(2).join("|||"); // Content might contain |||
+
+      if (!isNaN(windowIndex) && !isNaN(tabIndex) && content) {
+        contents.push({
+          windowIndex,
+          tabIndex,
+          content,
+        });
+      }
+    }
+  }
+
+  return contents;
+}
+
+// ─── Merge Content into Results ──────────────────────────────
+/**
+ * Merge tab content into existing search results.
+ * Matches by windowIndex and tabIndex.
+ */
+export function mergeContentIntoResults(
+  results: SearchResult[],
+  contents: TabContent[],
+): SearchResult[] {
+  // Create a map for quick lookup
+  const contentMap = new Map<string, string>();
+  for (const item of contents) {
+    const key = `${item.windowIndex}-${item.tabIndex}`;
+    contentMap.set(key, item.content);
+  }
+
+  return results.map((result) => {
+    if (
+      result.source === "tab" &&
+      result.windowIndex !== undefined &&
+      result.tabIndex !== undefined
+    ) {
+      const key = `${result.windowIndex}-${result.tabIndex}`;
+      const content = contentMap.get(key);
+      if (content) {
+        return { ...result, content };
+      }
+    }
+    return result;
+  });
 }

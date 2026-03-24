@@ -154,6 +154,40 @@ Build a **single Raycast extension** that provides a unified, real-time searchab
 
 ---
 
+### US-8: Word-Order-Independent Search
+
+**As a** user searching for a page,
+**I want** the search to find pages regardless of the order in which I type the words,
+**so that** I can find pages even when I don't remember the exact order of words in the title.
+
+**Acceptance Criteria:**
+
+- AC-8.1: When the user types multiple words, the search matches pages containing all words in any order.
+- AC-8.2: Searching "request github" matches a page titled "GitHub Pull Request #123".
+- AC-8.3: Searching "docs api raycast" matches "Raycast API Docs" and "API Documentation for Raycast".
+- AC-8.4: Each word in the query must appear somewhere in the page title, URL, or domain (all words required, any order).
+- AC-8.5: Search remains case-insensitive.
+- AC-8.6: Search performance remains responsive with no perceptible lag.
+
+---
+
+### US-9: Content-Based Search for Cached Pages
+
+**As a** user searching for a page,
+**I want** the extension to search within the cached content of pages (not just titles and URLs),
+**so that** I can find pages based on their content when I don't remember the exact title.
+
+**Acceptance Criteria:**
+
+- AC-9.1: For pages that Chrome has cached, the extension searches within the page's text content.
+- AC-9.2: If a search term appears in the cached page content but not in the title or URL, the page is still returned as a result.
+- AC-9.3: Content-matched results are clearly indicated (e.g., showing a snippet of the matching content).
+- AC-9.4: Content search applies to open tabs, bookmarks, and history entries where cached content is available.
+- AC-9.5: If cached content is not available for a page, the extension falls back to title/URL matching without error.
+- AC-9.6: Content indexing does not significantly impact extension launch time (< 2 seconds total load time).
+
+---
+
 ## 5. Non-Functional Requirements
 
 ### 5.1 Performance & Technical Requirements

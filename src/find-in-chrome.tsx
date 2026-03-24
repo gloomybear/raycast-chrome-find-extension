@@ -7,7 +7,7 @@ import {
   Toast,
   Color,
 } from "@raycast/api";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { runAppleScript } from "@raycast/utils";
 import {
   SearchResult,
@@ -16,8 +16,11 @@ import {
   getChromeHistory,
   deduplicateResults,
   parseTabOutput,
+  parseTabContentOutput,
+  mergeContentIntoResults,
   extractDomain,
 } from "./chrome-utils";
+import { filterResults, FilteredResult } from "./search-utils";
 
 // ─── Source Icon & Tag ───────────────────────────────────────
 function getSourceIcon(source: "tab" | "bookmark" | "history"): Icon {
@@ -72,6 +75,40 @@ async function getChromeTabs(): Promise<SearchResult[]> {
   }
 }
 
+// ─── Tab Content Fetching via AppleScript ────────────────────
+async function getTabContents(): Promise<string> {
+  try {
+    const script = `
+      set output to ""
+      tell application "Google Chrome"
+        set windowCount to count of windows
+        repeat with w from 1 to windowCount
+          set tabCount to count of tabs of window w
+          repeat with t from 1 to tabCount
+            try
+              set pageContent to execute tab t of window w javascript "
+                (function() {
+                  var text = document.body ? document.body.innerText : '';
+                  return text.substring(0, 10000).replace(/[\\n\\r]+/g, ' ').replace(/\\|\\|\\|/g, '   ');
+                })()
+              "
+              if pageContent is not missing value and pageContent is not "" then
+                set output to output & w & "|||" & t & "|||" & pageContent & "\\n"
+              end if
+            end try
+          end repeat
+        end repeat
+      end tell
+      return output
+    `;
+
+    return await runAppleScript(script);
+  } catch (error) {
+    console.error("Error fetching tab contents:", error);
+    return "";
+  }
+}
+
 // ─── Switch to Tab via AppleScript ───────────────────────────
 async function switchToTab(
   windowIndex: number,
@@ -102,13 +139,15 @@ async function openUrlInChrome(url: string): Promise<void> {
 export default function Command() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const profilePath = getChromeProfilePath();
 
-      // Load all sources in parallel
+      // Phase 1: Load tab metadata, bookmarks, and history in parallel
       const [tabs, bookmarks, history] = await Promise.all([
         getChromeTabs(),
         Promise.resolve(getChromeBookmarks(profilePath)),
@@ -120,6 +159,24 @@ export default function Command() {
       const deduplicated = deduplicateResults(combined);
 
       setResults(deduplicated);
+      setIsLoading(false);
+
+      // Phase 2: Load tab content in background
+      setIsLoadingContent(true);
+      try {
+        const contentOutput = await getTabContents();
+        const contents = parseTabContentOutput(contentOutput);
+        if (contents.length > 0) {
+          setResults((currentResults) =>
+            mergeContentIntoResults(currentResults, contents),
+          );
+        }
+      } catch (error) {
+        console.error("Error loading tab content:", error);
+        // Silent failure - content search just won't be available
+      } finally {
+        setIsLoadingContent(false);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
       showToast({
@@ -127,7 +184,6 @@ export default function Command() {
         title: "Failed to load Chrome data",
         message: String(error),
       });
-    } finally {
       setIsLoading(false);
     }
   }, []);
@@ -136,61 +192,70 @@ export default function Command() {
     loadData();
   }, [loadData]);
 
+  // Filter results based on search text (word-order-independent)
+  const filteredResults = useMemo(() => {
+    return filterResults(results, searchText);
+  }, [results, searchText]);
+
+  // Group filtered results by source
+  const tabs = useMemo(
+    () => filteredResults.filter((r) => r.source === "tab"),
+    [filteredResults],
+  );
+  const bookmarks = useMemo(
+    () => filteredResults.filter((r) => r.source === "bookmark"),
+    [filteredResults],
+  );
+  const historyItems = useMemo(
+    () => filteredResults.filter((r) => r.source === "history"),
+    [filteredResults],
+  );
+
   return (
     <List
-      isLoading={isLoading}
+      isLoading={isLoading || isLoadingContent}
       searchBarPlaceholder="Search tabs, bookmarks, and history..."
+      filtering={false}
+      onSearchTextChange={setSearchText}
       throttle
     >
-      <List.Section
-        title="Open Tabs"
-        subtitle={`${results.filter((r) => r.source === "tab").length} tabs`}
-      >
-        {results
-          .filter((r) => r.source === "tab")
-          .map((result) => (
-            <ResultItem
-              key={result.id}
-              result={result}
-              onTabSwitch={switchToTab}
-              onOpenUrl={openUrlInChrome}
-              onRefresh={loadData}
-            />
-          ))}
+      <List.Section title="Open Tabs" subtitle={`${tabs.length} tabs`}>
+        {tabs.map((result) => (
+          <ResultItem
+            key={result.id}
+            result={result}
+            onTabSwitch={switchToTab}
+            onOpenUrl={openUrlInChrome}
+            onRefresh={loadData}
+          />
+        ))}
       </List.Section>
 
       <List.Section
         title="Bookmarks"
-        subtitle={`${results.filter((r) => r.source === "bookmark").length} bookmarks`}
+        subtitle={`${bookmarks.length} bookmarks`}
       >
-        {results
-          .filter((r) => r.source === "bookmark")
-          .map((result) => (
-            <ResultItem
-              key={result.id}
-              result={result}
-              onTabSwitch={switchToTab}
-              onOpenUrl={openUrlInChrome}
-              onRefresh={loadData}
-            />
-          ))}
+        {bookmarks.map((result) => (
+          <ResultItem
+            key={result.id}
+            result={result}
+            onTabSwitch={switchToTab}
+            onOpenUrl={openUrlInChrome}
+            onRefresh={loadData}
+          />
+        ))}
       </List.Section>
 
-      <List.Section
-        title="History"
-        subtitle={`${results.filter((r) => r.source === "history").length} entries`}
-      >
-        {results
-          .filter((r) => r.source === "history")
-          .map((result) => (
-            <ResultItem
-              key={result.id}
-              result={result}
-              onTabSwitch={switchToTab}
-              onOpenUrl={openUrlInChrome}
-              onRefresh={loadData}
-            />
-          ))}
+      <List.Section title="History" subtitle={`${historyItems.length} entries`}>
+        {historyItems.map((result) => (
+          <ResultItem
+            key={result.id}
+            result={result}
+            onTabSwitch={switchToTab}
+            onOpenUrl={openUrlInChrome}
+            onRefresh={loadData}
+          />
+        ))}
       </List.Section>
     </List>
   );
@@ -203,7 +268,7 @@ function ResultItem({
   onOpenUrl,
   onRefresh,
 }: {
-  result: SearchResult;
+  result: FilteredResult;
   onTabSwitch: (windowIndex: number, tabIndex: number) => Promise<void>;
   onOpenUrl: (url: string) => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -216,13 +281,25 @@ function ResultItem({
     ? { source: result.favicon, fallback: getSourceIcon(result.source) }
     : getSourceIcon(result.source);
 
+  // Build accessories array - include content match tag if applicable
+  const accessories: List.Item.Accessory[] = [];
+  if (result.isContentMatch) {
+    accessories.push({ tag: { value: "Content Match", color: Color.Purple } });
+  }
+  accessories.push({ tag });
+
+  // Determine subtitle - show content snippet for content matches, otherwise domain
+  const subtitle =
+    result.isContentMatch && result.contentSnippet
+      ? result.contentSnippet
+      : domain;
+
   return (
     <List.Item
       title={result.title || "Untitled"}
-      subtitle={domain}
+      subtitle={subtitle}
       icon={icon}
-      accessories={[{ tag }]}
-      keywords={[result.url, result.title, domain].filter(Boolean)}
+      accessories={accessories}
       actions={
         <ActionPanel>
           <ActionPanel.Section>

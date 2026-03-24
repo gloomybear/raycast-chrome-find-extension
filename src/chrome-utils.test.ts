@@ -14,9 +14,12 @@ import {
   getSourceTagInfo,
   getSourceIconName,
   extractDomain,
+  parseTabContentOutput,
+  mergeContentIntoResults,
   SearchResult,
   ChromeBookmarkNode,
   FsDeps,
+  TabContent,
 } from "./chrome-utils";
 import { homedir } from "os";
 import { join } from "path";
@@ -898,5 +901,255 @@ describe("extractDomain", () => {
 
   it("returns empty string for empty input", () => {
     expect(extractDomain("")).toBe("");
+  });
+});
+
+describe("parseTabContentOutput", () => {
+  it("parses valid content output", () => {
+    const output =
+      "1|||1|||This is the page content\n2|||3|||Another page content";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(2);
+    expect(contents[0]).toMatchObject({
+      windowIndex: 1,
+      tabIndex: 1,
+      content: "This is the page content",
+    });
+    expect(contents[1]).toMatchObject({
+      windowIndex: 2,
+      tabIndex: 3,
+      content: "Another page content",
+    });
+  });
+
+  it("returns empty array for empty output", () => {
+    expect(parseTabContentOutput("")).toHaveLength(0);
+    expect(parseTabContentOutput("   ")).toHaveLength(0);
+  });
+
+  it("returns empty array for null/undefined", () => {
+    expect(parseTabContentOutput(null as unknown as string)).toHaveLength(0);
+    expect(parseTabContentOutput(undefined as unknown as string)).toHaveLength(
+      0,
+    );
+  });
+
+  it("handles content with ||| separator in it", () => {
+    const output = "1|||1|||Content with ||| in the middle";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(1);
+    expect(contents[0].content).toBe("Content with ||| in the middle");
+  });
+
+  it("skips malformed lines", () => {
+    const output = "1|||1|||Valid content\nmalformed line\n2|||2|||Also valid";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(2);
+  });
+
+  it("skips lines with invalid window/tab indices", () => {
+    const output = "abc|||1|||Content\n1|||xyz|||Content\n1|||1|||Valid";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(1);
+    expect(contents[0].windowIndex).toBe(1);
+  });
+
+  it("skips lines with empty content", () => {
+    const output = "1|||1|||\n2|||2|||Has content";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(1);
+    expect(contents[0].windowIndex).toBe(2);
+  });
+
+  it("handles empty lines in output", () => {
+    const output = "1|||1|||Content\n\n\n2|||2|||More content";
+
+    const contents = parseTabContentOutput(output);
+
+    expect(contents).toHaveLength(2);
+  });
+});
+
+describe("mergeContentIntoResults", () => {
+  it("merges content into matching tab results", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab 1",
+        url: "https://example.com",
+        source: "tab",
+        windowIndex: 1,
+        tabIndex: 1,
+      },
+      {
+        id: "tab-1-2",
+        title: "Tab 2",
+        url: "https://other.com",
+        source: "tab",
+        windowIndex: 1,
+        tabIndex: 2,
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Page content for tab 1" },
+      { windowIndex: 1, tabIndex: 2, content: "Page content for tab 2" },
+    ];
+
+    const merged = mergeContentIntoResults(results, contents);
+
+    expect(merged[0].content).toBe("Page content for tab 1");
+    expect(merged[1].content).toBe("Page content for tab 2");
+  });
+
+  it("does not modify non-tab results", () => {
+    const results: SearchResult[] = [
+      {
+        id: "bookmark-1",
+        title: "Bookmark",
+        url: "https://example.com",
+        source: "bookmark",
+      },
+      {
+        id: "history-1",
+        title: "History",
+        url: "https://other.com",
+        source: "history",
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Some content" },
+    ];
+
+    const merged = mergeContentIntoResults(results, contents);
+
+    expect(merged[0].content).toBeUndefined();
+    expect(merged[1].content).toBeUndefined();
+  });
+
+  it("handles tabs without matching content", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab 1",
+        url: "https://example.com",
+        source: "tab",
+        windowIndex: 1,
+        tabIndex: 1,
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 2, tabIndex: 1, content: "Different window" },
+    ];
+
+    const merged = mergeContentIntoResults(results, contents);
+
+    expect(merged[0].content).toBeUndefined();
+  });
+
+  it("handles empty content array", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab 1",
+        url: "https://example.com",
+        source: "tab",
+        windowIndex: 1,
+        tabIndex: 1,
+      },
+    ];
+
+    const merged = mergeContentIntoResults(results, []);
+
+    expect(merged[0].content).toBeUndefined();
+  });
+
+  it("handles empty results array", () => {
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Content" },
+    ];
+
+    const merged = mergeContentIntoResults([], contents);
+
+    expect(merged).toHaveLength(0);
+  });
+
+  it("handles tabs without windowIndex or tabIndex", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab without indices",
+        url: "https://example.com",
+        source: "tab",
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Content" },
+    ];
+
+    const merged = mergeContentIntoResults(results, contents);
+
+    expect(merged[0].content).toBeUndefined();
+  });
+
+  it("preserves all other result properties", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab 1",
+        url: "https://example.com",
+        source: "tab",
+        subtitle: "Subtitle",
+        favicon: "https://favicon.com/icon.png",
+        windowIndex: 1,
+        tabIndex: 1,
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Content" },
+    ];
+
+    const merged = mergeContentIntoResults(results, contents);
+
+    expect(merged[0].id).toBe("tab-1-1");
+    expect(merged[0].title).toBe("Tab 1");
+    expect(merged[0].subtitle).toBe("Subtitle");
+    expect(merged[0].favicon).toBe("https://favicon.com/icon.png");
+    expect(merged[0].content).toBe("Content");
+  });
+
+  it("does not mutate original results array", () => {
+    const results: SearchResult[] = [
+      {
+        id: "tab-1-1",
+        title: "Tab 1",
+        url: "https://example.com",
+        source: "tab",
+        windowIndex: 1,
+        tabIndex: 1,
+      },
+    ];
+
+    const contents: TabContent[] = [
+      { windowIndex: 1, tabIndex: 1, content: "Content" },
+    ];
+
+    mergeContentIntoResults(results, contents);
+
+    expect(results[0].content).toBeUndefined();
   });
 });
