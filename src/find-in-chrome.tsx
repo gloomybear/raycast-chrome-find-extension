@@ -76,24 +76,40 @@ async function getChromeTabs(): Promise<SearchResult[]> {
 }
 
 // ─── Tab Content Fetching via AppleScript ────────────────────
+const MAX_TABS_FOR_CONTENT = 30; // Limit to prevent timeout
+const MAX_CONTENT_LENGTH = 5000; // Characters per tab
+
 async function getTabContents(): Promise<string> {
   try {
     const script = `
       set output to ""
+      set tabsProcessed to 0
+      set maxTabs to ${MAX_TABS_FOR_CONTENT}
       tell application "Google Chrome"
-        set windowCount to count of windows
-        repeat with w from 1 to windowCount
-          set tabCount to count of tabs of window w
-          repeat with t from 1 to tabCount
+        repeat with w from 1 to (count of windows)
+          if tabsProcessed >= maxTabs then exit repeat
+          repeat with t from 1 to (count of tabs of window w)
+            if tabsProcessed >= maxTabs then exit repeat
             try
-              set pageContent to execute tab t of window w javascript "
-                (function() {
-                  var text = document.body ? document.body.innerText : '';
-                  return text.substring(0, 10000).replace(/[\\n\\r]+/g, ' ').replace(/\\|\\|\\|/g, '   ');
-                })()
-              "
-              if pageContent is not missing value and pageContent is not "" then
-                set output to output & w & "|||" & t & "|||" & pageContent & "\\n"
+              set tabURL to URL of tab t of window w
+              -- Skip non-http URLs (chrome://, file://, etc.)
+              if tabURL starts with "http" then
+                try
+                  with timeout of 1 seconds
+                    set pageContent to execute tab t of window w javascript "
+                      (function() {
+                        try {
+                          var text = document.body ? document.body.innerText : '';
+                          return text.substring(0, ${MAX_CONTENT_LENGTH}).replace(/[\\n\\r]+/g, ' ').replace(/\\|\\|\\|/g, '   ');
+                        } catch(e) { return ''; }
+                      })()
+                    "
+                  end timeout
+                  if pageContent is not missing value and pageContent is not "" then
+                    set output to output & w & "|||" & t & "|||" & pageContent & "\\n"
+                  end if
+                end try
+                set tabsProcessed to tabsProcessed + 1
               end if
             end try
           end repeat
