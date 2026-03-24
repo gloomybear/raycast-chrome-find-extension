@@ -21,11 +21,14 @@ Raycast extension providing unified search across Chrome tabs, bookmarks, and hi
 ## Commands
 
 ```bash
-npm install      # Install dependencies
-npm run dev      # Start development mode (registers extension in Raycast)
-npm run build    # Build extension
-npm run lint     # Run ESLint
-npm run fix-lint # Auto-fix lint issues
+npm install          # Install dependencies
+npm run dev          # Start development mode (registers extension in Raycast)
+npm run build        # Build extension
+npm run lint         # Run ESLint + Prettier
+npm run fix-lint     # Auto-fix lint issues
+npm test             # Run unit tests
+npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
 ```
 
 ## Architecture
