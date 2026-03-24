@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IMPORTANT: Agent Instructions
+
+**Read `agent.md` at the start of every session and after context updates.** It contains critical guidelines to prevent common mistakes (e.g., uncommitted files, formatting issues, verification steps).
+
 ## Project Overview
 
 Raycast extension providing unified search across Chrome tabs, bookmarks, and history. Selecting a result either switches to an existing tab or opens the URL in Chrome.
