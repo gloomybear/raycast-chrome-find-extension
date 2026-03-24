@@ -4,7 +4,7 @@
   "title": "Find in Chrome",
   "description": "Unified search across Chrome tabs, bookmarks, and history. Finds existing tabs and switches to them, or opens from bookmarks/history.",
   "icon": "extension-icon.png",
-  "author": "albert",
+  "author": "albert_dabinski",
   "categories": [
     "Productivity",
     "Web"

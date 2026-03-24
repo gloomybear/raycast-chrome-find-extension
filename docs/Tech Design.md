@@ -3,7 +3,7 @@
 ---
 
 ## About this doc
-This document explains the technical architecture based on the overall solution concept and requirements explained in: README.md
+This document explains the technical architecture based on the overall solution concept and requirements explained in: PRD.md
 
 
 ## 1. Technical Architecture

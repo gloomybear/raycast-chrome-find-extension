@@ -8,8 +8,9 @@ Raycast extension providing unified search across Chrome tabs, bookmarks, and hi
 
 ## Documentation
 
-- **PRD**: `README.md` - Problem statement, user stories, acceptance criteria
+- **PRD**: `docs/PRD.md` - Problem statement, user stories, acceptance criteria (including Raycast Store requirements)
 - **Technical Architecture**: `docs/Tech Design.md` - Stack, data flow, design decisions
+- **User README**: `README.md` - User-facing documentation for Raycast Store
 
 **Workflow**:
 1. Update PRD first to validate requirements
