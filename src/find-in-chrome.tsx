@@ -274,6 +274,30 @@ export default function Command() {
           />
         ))}
       </List.Section>
+
+      {searchText.trim() && (
+        <List.Section title="Web Search">
+          <List.Item
+            title={`Search Google for "${searchText.trim()}"`}
+            icon={Icon.MagnifyingGlass}
+            actions={
+              <ActionPanel>
+                <Action
+                  title="Search in Google"
+                  icon={Icon.MagnifyingGlass}
+                  onAction={async () => {
+                    const query = encodeURIComponent(searchText.trim());
+                    await openUrlInChrome(
+                      `https://www.google.com/search?q=${query}`,
+                    );
+                    await closeMainWindow();
+                  }}
+                />
+              </ActionPanel>
+            }
+          />
+        </List.Section>
+      )}
     </List>
   );
 }

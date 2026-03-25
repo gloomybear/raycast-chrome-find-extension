@@ -43,6 +43,22 @@ After completing any task that modifies files:
 
 ---
 
+## PRD-First Workflow
+
+**Never implement a feature before the user approves the PRD changes.**
+
+The correct order for any new feature or requirement change is:
+
+1. Update `docs/PRD.md` with the new or revised user story and acceptance criteria
+2. Stop and present the PRD changes to the user for review
+3. Wait for explicit approval of the PRD before proceeding
+4. Review `docs/Tech Design.md` and update it to reflect any architectural or design changes required by the feature — new data sources, changed data flow, new design decisions, etc.
+5. Implement only what the approved PRD and updated Tech Design describe — no approval needed for Tech Design, but it must be updated before any code is written
+
+If the PRD and implementation end up out of sync, the PRD is wrong — fix the PRD to accurately reflect the actual behaviour, not the other way around.
+
+---
+
 ## Documentation Ownership
 
 Each piece of information lives in exactly one place:

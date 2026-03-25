@@ -17,8 +17,8 @@ Raycast extension providing unified search across Chrome tabs, bookmarks, and hi
 - **User README**: `README.md` - User-facing documentation for Raycast Store
 
 **Workflow**:
-1. Update PRD first to validate requirements
-2. Determine any necessary changes to technical architecture
+1. Update `docs/PRD.md` with new or revised requirements — wait for user approval
+2. Update `docs/Tech Design.md` with any architectural or design changes
 3. Implement changes
 4. Achieve ≥90% unit test coverage; all tests must pass
 5. Functional QA: verify solution meets all acceptance criteria in PRD before presenting as complete

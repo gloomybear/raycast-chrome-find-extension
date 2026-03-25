@@ -247,6 +247,21 @@ The extension must meet all Raycast Store guidelines for publication.
 
 ---
 
+### US-10: Search in Google
+
+**As a** user searching through tabs, bookmarks, and history,
+**I want to** trigger a Google search directly from the extension using my current search query,
+**so that** I can quickly find information online without switching apps or retyping my query.
+
+**Acceptance Criteria:**
+
+- AC-10.1: When the user has typed a search query, a "Search in Google" item is visible in a dedicated "Web Search" section at the bottom of the results list — including when all other sections are empty.
+- AC-10.2: Selecting "Search in Google" opens a new Chrome tab with a Google search pre-populated with the current search query, so the user sees results immediately.
+- AC-10.3: Chrome is brought to the foreground and Raycast is dismissed after triggering the search.
+- AC-10.4: When the search query is cleared, the "Web Search" section is hidden.
+
+---
+
 ## 6. Future Enhancements
 
 | Enhancement | Priority | Complexity |
