@@ -6,6 +6,7 @@ import {
   showToast,
   Toast,
   Color,
+  closeMainWindow,
 } from "@raycast/api";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { runAppleScript } from "@raycast/utils";
@@ -327,6 +328,7 @@ function ResultItem({
                 icon={Icon.Globe}
                 onAction={async () => {
                   await onTabSwitch(result.windowIndex!, result.tabIndex!);
+                  await closeMainWindow();
                   showToast({
                     style: Toast.Style.Success,
                     title: `Switched to: ${result.title}`,
@@ -339,6 +341,7 @@ function ResultItem({
                 icon={Icon.Globe}
                 onAction={async () => {
                   await onOpenUrl(result.url);
+                  await closeMainWindow();
                   showToast({
                     style: Toast.Style.Success,
                     title: `Opening: ${result.title}`,

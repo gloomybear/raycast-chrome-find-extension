@@ -74,6 +74,7 @@ Build a **single Raycast extension** that provides a unified, real-time searchab
 - AC-2.2: The selected tab becomes the active tab in its window.
 - AC-2.3: No new tab is opened when switching to an existing one.
 - AC-2.4: A confirmation toast is shown: "Switched to: {page title}".
+- AC-2.5: Raycast is dismissed (closed) immediately after switching to the tab.
 
 ---
 
@@ -88,6 +89,7 @@ Build a **single Raycast extension** that provides a unified, real-time searchab
 - AC-3.1: When the user presses Enter on a result tagged as "Bookmark" or "History", the URL opens in a new Chrome tab.
 - AC-3.2: Chrome is brought to the foreground after opening the URL.
 - AC-3.3: A confirmation toast is shown: "Opening: {page title}".
+- AC-3.6: Raycast is dismissed (closed) immediately after opening the URL in Chrome.
 - AC-3.4: The user can alternatively open the URL in their default browser via a secondary action.
 - AC-3.5: The user can copy the URL to the clipboard via ⌘ + C.
 
