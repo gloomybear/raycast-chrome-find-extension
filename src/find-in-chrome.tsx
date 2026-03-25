@@ -236,6 +236,12 @@ export default function Command() {
       onSearchTextChange={setSearchText}
       throttle
     >
+      <List.EmptyView
+        icon={Icon.Globe}
+        title="No Results Found"
+        description="Try a different search, or check that Chrome is running."
+      />
+
       <List.Section title="Open Tabs" subtitle={`${tabs.length} tabs`}>
         {tabs.map((result) => (
           <ResultItem

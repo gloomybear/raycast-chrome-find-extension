@@ -229,7 +229,7 @@ The extension must meet all Raycast Store guidelines for publication.
 - AC-NFR-10: Extension icon must be 512x512px PNG format.
 - AC-NFR-11: Icon must display properly in both light and dark themes.
 - AC-NFR-12: Icon must not be the default Raycast icon.
-- AC-NFR-13: Screenshots must be provided (minimum 3, maximum 6).
+- AC-NFR-13: Screenshots must be provided (minimum 1, maximum 6).
 - AC-NFR-14: Screenshots must be 2000x1250px PNG format (16:10 landscape).
 - AC-NFR-15: Screenshots must use consistent backgrounds and show informative commands.
 

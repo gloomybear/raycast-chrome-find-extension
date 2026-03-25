@@ -76,7 +76,16 @@ Extension Launch
 | Custom filtering with `filtering={false}` | Required for word-order-independent matching and content search - features not supported by Raycast's native filtering. |
 | Read `Local State` for profile detection | More reliable than AppleScript - works even if Chrome has no open windows. |
 
-### 1.7 Search Strategy
+### 1.7 Empty State
+
+A custom `List.EmptyView` is rendered inside the `List` component. It is shown by Raycast automatically when all sections contain no items and `isLoading` is false — for example when Chrome is not running and there are no bookmarks or history entries, or briefly during the initial data fetch before the loading state is set. Providing a custom empty view prevents the default Raycast "No results" flicker.
+
+The empty view displays:
+- **Icon**: `Icon.Globe`
+- **Title**: "No Results Found"
+- **Description**: "Try a different search, or check that Chrome is running."
+
+### 1.8 Search Strategy
 
 The extension uses custom filtering to support word-order-independent search:
 
@@ -91,7 +100,7 @@ The extension uses custom filtering to support word-order-independent search:
 
 This approach enables more flexible searching while maintaining result relevance.
 
-### 1.8 Content Search
+### 1.9 Content Search
 
 For open tabs, the extension fetches page content via JavaScript execution through AppleScript:
 
