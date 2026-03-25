@@ -36,21 +36,6 @@ npm run test:watch   # Run tests in watch mode
 npm run test:coverage # Run tests with coverage report
 ```
 
-## Architecture
+## Architecture & Design Decisions
 
-Single-file React extension (`src/find-in-chrome.tsx`) with three data sources loaded in parallel:
-
-| Source | Method | Location |
-|--------|--------|----------|
-| Tabs | AppleScript via `runAppleScript` | Chrome runtime |
-| Bookmarks | JSON parsing | `<profile>/Bookmarks` |
-| History | `sqlite3` CLI on temp copy | `<profile>/History` |
-
-Results deduplicated with priority: tabs > bookmarks > history. URLs normalized (trailing slashes, fragments removed).
-
-## Key Design Decisions
-
-- **`sqlite3` CLI over `better-sqlite3`**: Avoids native compilation issues (node-gyp/Python/Xcode). `sqlite3` is pre-installed on macOS.
-- **Copy History DB**: Chrome holds write lock; copying avoids `SQLITE_BUSY` errors.
-- **Google Favicon Service**: Simpler than parsing Chrome's complex Favicons DB.
-- **Profile detection**: Reads `Local State` JSON (`profile.last_active_profiles[0]`), falls back to `Default` profile.
+See `docs/Tech Design.md` for the full technical architecture, data flow, key design decisions, and explored alternatives.

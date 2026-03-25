@@ -43,6 +43,18 @@ After completing any task that modifies files:
 
 ---
 
+## Documentation Ownership
+
+Each piece of information lives in exactly one place:
+
+- **`CLAUDE.md`**: How to work in this repo — commands, workflow, testing requirements, agent instructions, and pointers to other docs. No architecture or design content.
+- **`docs/Tech Design.md`**: All technical architecture, data flow, stack decisions, design decisions, and explored alternatives.
+- **`docs/PRD.md`**: All requirements, user stories, and acceptance criteria.
+
+When adding or updating documentation, always ask: does this already exist somewhere else? If the content belongs in `Tech Design.md` or `PRD.md`, put it there — not in `CLAUDE.md`. Never duplicate information across files; update the single source of truth and add a pointer if needed.
+
+---
+
 ## After Code Changes
 
 **Always run `npm run dev` after making code changes** so the user has the latest version running in Raycast for testing. Run it in the background so it doesn't block further work.
