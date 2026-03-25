@@ -4,6 +4,17 @@ This file contains instructions for Claude Code when working on this repository.
 
 ---
 
+## Autonomy
+
+Full permissions are granted for this project. Do not ask for confirmation before:
+- Reading, editing, or creating files
+- Running any shell commands (tests, lint, build, dev, git operations)
+- Committing and pushing to the repository (when explicitly asked)
+
+The only exception is the PRD-First Workflow — wait for user approval of PRD changes before proceeding to implementation.
+
+---
+
 ## Pre-Commit Checklist
 
 Before every commit, always run:
